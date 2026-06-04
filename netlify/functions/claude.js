@@ -1,3 +1,4 @@
+console.log('Function called, key exists:', !!process.env.GEMINI_API_KEY);
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
