@@ -1,0 +1,2195 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#1a2e1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bostan">
+<link rel="manifest" id="manifestLink">
+<title>🌱 Bostan Yöneticisi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --soil: #2c1a0e;
+  --bark: #3d2b1f;
+  --moss: #1a2e1a;
+  --leaf: #2d5a27;
+  --sprout: #4a7c59;
+  --sage: #7a9e7e;
+  --mint: #a8c5a0;
+  --foam: #d4e8d0;
+  --cream: #f5f0e8;
+  --gold: #c9a84c;
+  --amber: #e8b04b;
+  --rust: #c4613a;
+  --sky: #4a8db5;
+  --water: #7bb3d4;
+  --warning: #e8742a;
+  --danger: #c43a3a;
+  --text: #1a1410;
+  --text-soft: #5a4a3a;
+  --card-bg: rgba(245,240,232,0.95);
+  --card-border: rgba(74,124,89,0.2);
+  --shadow: 0 4px 24px rgba(44,26,14,0.15);
+  --shadow-deep: 0 8px 48px rgba(44,26,14,0.25);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Mono', monospace;
+  background: var(--moss);
+  color: var(--cream);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* BG TEXTURE */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse at 20% 50%, rgba(74,124,89,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(44,114,44,0.1) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* HEADER */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(26,46,26,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(74,124,89,0.3);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.header-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--mint);
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-title span { color: var(--gold); }
+
+.header-meta {
+  font-size: 0.65rem;
+  color: var(--sage);
+  text-align: right;
+  line-height: 1.4;
+}
+
+.weather-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(74,124,89,0.2);
+  border: 1px solid rgba(74,124,89,0.3);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.weather-badge:hover { background: rgba(74,124,89,0.35); }
+.weather-badge .temp { font-weight: 500; color: var(--amber); }
+
+/* NAV */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(26,46,26,0.95);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(74,124,89,0.3);
+  display: flex;
+  padding: env(safe-area-inset-bottom, 0) 0 0;
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  background: none;
+  color: var(--sage);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  position: relative;
+}
+
+.nav-item .icon { font-size: 1.3rem; transition: transform 0.2s; }
+.nav-item.active { color: var(--mint); }
+.nav-item.active .icon { transform: scale(1.15); }
+.nav-item:hover { color: var(--mint); }
+
+.nav-badge {
+  position: absolute;
+  top: 4px;
+  right: calc(50% - 16px);
+  background: var(--rust);
+  color: white;
+  border-radius: 10px;
+  padding: 1px 5px;
+  font-size: 0.55rem;
+  min-width: 16px;
+  text-align: center;
+}
+
+/* MAIN CONTENT */
+.main-content {
+  padding: 16px 16px calc(80px + env(safe-area-inset-bottom, 0));
+  position: relative;
+  z-index: 1;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.page { display: none; animation: fadeUp 0.3s ease; }
+.page.active { display: block; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* CARDS */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--moss);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* SECTION TITLES */
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--mint);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-sub {
+  font-size: 0.7rem;
+  color: var(--sage);
+  margin-bottom: 16px;
+  margin-top: -10px;
+}
+
+/* BUTTONS */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--leaf);
+  color: var(--cream);
+}
+.btn-primary:hover { background: var(--sprout); transform: translateY(-1px); }
+
+.btn-secondary {
+  background: rgba(74,124,89,0.15);
+  color: var(--leaf);
+  border: 1px solid rgba(74,124,89,0.3);
+}
+.btn-secondary:hover { background: rgba(74,124,89,0.25); }
+
+.btn-danger {
+  background: rgba(196,58,58,0.1);
+  color: var(--danger);
+  border: 1px solid rgba(196,58,58,0.2);
+}
+.btn-danger:hover { background: rgba(196,58,58,0.2); }
+
+.btn-gold {
+  background: var(--gold);
+  color: var(--soil);
+}
+.btn-gold:hover { background: var(--amber); }
+
+.btn-sm { padding: 5px 10px; font-size: 0.7rem; border-radius: 8px; }
+.btn-full { width: 100%; justify-content: center; }
+
+/* INPUTS */
+.form-group { margin-bottom: 12px; }
+.form-label { display: block; font-size: 0.7rem; color: var(--text-soft); margin-bottom: 4px; font-weight: 500; }
+
+input, select, textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(74,124,89,0.3);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.8);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.82rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--sprout);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(74,124,89,0.1);
+}
+
+textarea { resize: vertical; min-height: 80px; }
+
+/* DASHBOARD */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 14px 12px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+
+.stat-card .stat-icon { font-size: 1.6rem; margin-bottom: 4px; }
+.stat-card .stat-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--leaf);
+  line-height: 1;
+}
+.stat-card .stat-label { font-size: 0.62rem; color: var(--text-soft); margin-top: 2px; }
+
+/* TASK ITEMS */
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  background: rgba(255,255,255,0.7);
+  border: 1px solid rgba(74,124,89,0.15);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.task-item:hover { background: rgba(255,255,255,0.95); transform: translateX(3px); }
+.task-item.done { opacity: 0.55; }
+.task-item.done .task-title { text-decoration: line-through; }
+
+.task-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--sprout);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.task-check.checked { background: var(--leaf); border-color: var(--leaf); }
+.task-check.checked::after { content: '✓'; color: white; font-size: 0.75rem; font-weight: bold; }
+
+.task-body { flex: 1; min-width: 0; }
+.task-title { font-size: 0.85rem; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+.task-meta { font-size: 0.68rem; color: var(--text-soft); display: flex; gap: 8px; flex-wrap: wrap; }
+
+.site-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 0.62rem;
+  font-weight: 500;
+  color: white;
+}
+.site-ata { background: #2d6a2d; }
+.site-mutlukent { background: #1a5c8a; }
+.site-cigdem { background: #8a3a1a; }
+.site-alacaatli { background: #5a1a8a; }
+.site-genel { background: #4a4a4a; }
+
+.priority-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 7px;
+}
+.priority-yuksek { background: var(--danger); }
+.priority-orta { background: var(--amber); }
+.priority-dusuk { background: var(--sprout); }
+
+/* WEATHER STRIP */
+.weather-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.weather-strip::-webkit-scrollbar { display: none; }
+
+.weather-day {
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.7);
+  border: 1px solid rgba(74,124,89,0.2);
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: center;
+  min-width: 70px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.weather-day:hover { background: rgba(255,255,255,0.95); }
+.weather-day.today { border-color: var(--sprout); background: rgba(74,124,89,0.1); }
+.weather-day .wd-day { font-size: 0.62rem; color: var(--text-soft); }
+.weather-day .wd-icon { font-size: 1.4rem; margin: 4px 0; }
+.weather-day .wd-temp { font-size: 0.85rem; font-weight: 600; color: var(--leaf); }
+.weather-day .wd-rain { font-size: 0.62rem; color: var(--sky); }
+.weather-day.alert-day { border-color: var(--warning); }
+
+/* ALERTS */
+.alert-bar {
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.78rem;
+}
+.alert-bar.warning { background: rgba(232,116,42,0.15); border: 1px solid rgba(232,116,42,0.3); color: #8a3a00; }
+.alert-bar.info { background: rgba(74,141,181,0.12); border: 1px solid rgba(74,141,181,0.25); color: #1a4a6a; }
+.alert-bar.success { background: rgba(74,124,89,0.15); border: 1px solid rgba(74,124,89,0.3); color: var(--moss); }
+.alert-bar .alert-icon { font-size: 1.2rem; flex-shrink: 0; }
+
+/* CALENDAR */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7,1fr);
+  gap: 3px;
+  margin-bottom: 8px;
+}
+
+.cal-header-day {
+  text-align: center;
+  font-size: 0.6rem;
+  color: var(--text-soft);
+  padding: 4px 0;
+  font-weight: 600;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 3px 2px;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: rgba(255,255,255,0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.cal-day:hover { background: rgba(255,255,255,0.85); }
+.cal-day.today { background: rgba(74,124,89,0.2); border: 1.5px solid var(--sprout); }
+.cal-day.other-month { opacity: 0.35; }
+.cal-day .cal-num { font-size: 0.68rem; font-weight: 500; color: var(--text); line-height: 1.2; }
+.cal-day.today .cal-num { font-weight: 700; color: var(--leaf); }
+
+.cal-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5px;
+  justify-content: center;
+  margin-top: 1px;
+}
+.cal-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+/* LEAVE TRACKER */
+.leave-bar {
+  background: rgba(74,124,89,0.1);
+  border-radius: 8px;
+  height: 10px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+.leave-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--leaf), var(--sprout));
+  border-radius: 8px;
+  transition: width 0.5s ease;
+}
+.leave-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.68rem;
+  color: var(--text-soft);
+  margin-top: 4px;
+}
+
+/* VOICE CHAT */
+.voice-area {
+  background: rgba(26,46,26,0.05);
+  border: 1px solid rgba(74,124,89,0.2);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.chat-messages {
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-right: 4px;
+}
+
+.chat-msg {
+  max-width: 85%;
+  padding: 10px 13px;
+  border-radius: 14px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  animation: fadeUp 0.2s ease;
+}
+.chat-msg.user {
+  align-self: flex-end;
+  background: var(--leaf);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+.chat-msg.assistant {
+  align-self: flex-start;
+  background: rgba(255,255,255,0.85);
+  color: var(--text);
+  border-bottom-left-radius: 4px;
+  border: 1px solid rgba(74,124,89,0.2);
+}
+.chat-msg.system {
+  align-self: center;
+  background: rgba(74,124,89,0.1);
+  color: var(--text-soft);
+  font-size: 0.7rem;
+  border-radius: 8px;
+  padding: 5px 10px;
+}
+
+.voice-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.mic-btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: var(--leaf);
+  color: white;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.mic-btn:hover { background: var(--sprout); transform: scale(1.05); }
+.mic-btn.recording { background: var(--danger); animation: pulse 1s infinite; }
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(196,58,58,0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(196,58,58,0); }
+}
+
+.voice-input-wrap { flex: 1; }
+.voice-input-wrap input { margin: 0; }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26,46,26,0.75);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--cream);
+  border-radius: 24px 24px 0 0;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0));
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  color: var(--text);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.modal-handle {
+  width: 40px;
+  height: 4px;
+  background: rgba(0,0,0,0.15);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--moss);
+  margin-bottom: 16px;
+}
+
+/* PRINT AREA */
+@media print {
+  body { background: white !important; color: black !important; }
+  .bottom-nav, .app-header, .no-print { display: none !important; }
+  .main-content { padding: 0 !important; max-width: 100% !important; }
+  .card { background: white !important; border: 1px solid #ccc !important; box-shadow: none !important; break-inside: avoid; }
+  .page { display: block !important; }
+  #print-section { display: block !important; }
+  @page { margin: 20mm; }
+}
+
+/* CHIPS */
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.chip {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.68rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1px solid transparent;
+}
+.chip.active { background: var(--leaf); color: white; }
+.chip:not(.active) { background: rgba(74,124,89,0.1); color: var(--leaf); border-color: rgba(74,124,89,0.2); }
+
+/* LOADING */
+.loading { 
+  display: flex; align-items: center; gap: 8px; 
+  color: var(--sage); font-size: 0.78rem; padding: 8px 0;
+}
+.spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(74,124,89,0.3);
+  border-top-color: var(--sprout);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* TABS */
+.tabs { display: flex; gap: 4px; margin-bottom: 14px; }
+.tab-btn {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid rgba(74,124,89,0.2);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--sage);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tab-btn.active {
+  background: var(--leaf);
+  color: white;
+  border-color: var(--leaf);
+}
+
+/* WEEKLY VIEW */
+.week-row {
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  gap: 8px;
+  margin-bottom: 4px;
+  align-items: start;
+}
+.week-day-label {
+  font-size: 0.68rem;
+  color: var(--text-soft);
+  padding-top: 10px;
+  text-align: right;
+}
+.week-tasks { display: flex; flex-direction: column; gap: 3px; }
+
+.mini-task {
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mini-task:hover { opacity: 0.85; transform: translateX(2px); }
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--sage);
+}
+.empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 8px; }
+.empty-state p { font-size: 0.8rem; line-height: 1.5; }
+
+/* FAB */
+.fab {
+  position: fixed;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0));
+  right: 20px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--leaf);
+  color: white;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(45,90,39,0.4);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.fab:hover { background: var(--sprout); transform: scale(1.08) rotate(45deg); }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(74,124,89,0.3); border-radius: 2px; }
+
+/* TOAST */
+.toast-container {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+.toast {
+  background: var(--bark);
+  color: var(--cream);
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 0.78rem;
+  box-shadow: var(--shadow-deep);
+  border-left: 3px solid var(--sprout);
+  animation: toastIn 0.3s ease;
+  white-space: nowrap;
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* STATUS BADGE */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.62rem;
+}
+.status-bekliyor { background: rgba(232,176,75,0.15); color: #7a5a00; }
+.status-devam { background: rgba(74,124,89,0.15); color: var(--leaf); }
+.status-tamamlandi { background: rgba(74,141,181,0.15); color: #1a4a6a; }
+</style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="header-title">🌱 <span>Bostan</span> YÖN.</div>
+  <div class="weather-badge" onclick="showPage('hava')">
+    <span id="headerWeatherIcon">⛅</span>
+    <span class="temp" id="headerTemp">--°</span>
+  </div>
+  <div class="header-meta">
+    <div id="headerDate">—</div>
+    <div id="headerTime" style="color:var(--mint)">--:--</div>
+  </div>
+</header>
+
+<!-- FAB -->
+<button class="fab" onclick="openAddTask()" title="Yeni görev ekle">+</button>
+
+<!-- MAIN -->
+<main class="main-content">
+
+  <!-- DASHBOARD PAGE -->
+  <div class="page active" id="page-dashboard">
+    <div class="section-title">📊 Genel Bakış</div>
+    
+    <!-- Smart Alerts -->
+    <div id="smartAlerts"></div>
+
+    <!-- Stats -->
+    <div class="dashboard-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📋</div>
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-label">Toplam Görev</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value" id="statDone">0</div>
+        <div class="stat-label">Tamamlanan</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-value" id="statPending">0</div>
+        <div class="stat-label">Bekleyen</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🏖️</div>
+        <div class="stat-value" id="statLeave">0</div>
+        <div class="stat-label">Kalan İzin</div>
+      </div>
+    </div>
+
+    <!-- Today's Tasks -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📅 Bugünkü Görevler</div>
+        <button class="btn btn-secondary btn-sm" onclick="showPage('gorevler')">Tümü →</button>
+      </div>
+      <div id="todayTaskList">
+        <div class="empty-state"><div class="empty-icon">🌿</div><p>Bugün için görev yok</p></div>
+      </div>
+    </div>
+
+    <!-- Quick Weather -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">🌤️ Haftalık Hava</div>
+        <span id="weatherCity" style="font-size:0.68rem;color:var(--text-soft)">Ankara</span>
+      </div>
+      <div class="weather-strip" id="quickWeatherStrip"></div>
+    </div>
+  </div>
+
+  <!-- TASKS PAGE -->
+  <div class="page" id="page-gorevler">
+    <div class="section-title">📋 Görevler</div>
+    
+    <div class="tabs">
+      <button class="tab-btn active" onclick="setTaskTab('haftalik',this)">Haftalık</button>
+      <button class="tab-btn" onclick="setTaskTab('aylik',this)">Aylık</button>
+      <button class="tab-btn" onclick="setTaskTab('tumü',this)">Tümü</button>
+    </div>
+
+    <div class="chip-row" id="siteFilter">
+      <div class="chip active" onclick="filterSite('tumu',this)">Tümü</div>
+      <div class="chip" onclick="filterSite('ata',this)">🌾 Ata</div>
+      <div class="chip" onclick="filterSite('mutlukent',this)">🏙️ Mutlukent</div>
+      <div class="chip" onclick="filterSite('cigdem',this)">🌿 Çiğdem</div>
+      <div class="chip" onclick="filterSite('alacaatli',this)">🌻 Alacaatlı</div>
+    </div>
+
+    <div id="taskListContainer"></div>
+
+    <div style="text-align:center;padding:16px 0;">
+      <button class="btn btn-secondary" onclick="printTasks()">🖨️ Çıktı Al</button>
+    </div>
+  </div>
+
+  <!-- CALENDAR PAGE -->
+  <div class="page" id="page-takvim">
+    <div class="section-title">📅 Takvim</div>
+    
+    <div class="card" style="padding:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <button class="btn btn-secondary btn-sm" onclick="changeMonth(-1)">‹</button>
+        <span style="font-family:'Playfair Display',serif;font-weight:700;color:var(--moss)" id="calMonthLabel"></span>
+        <button class="btn btn-secondary btn-sm" onclick="changeMonth(1)">›</button>
+      </div>
+      
+      <!-- Legend -->
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+        <span style="display:flex;align-items:center;gap:3px;font-size:0.62rem;color:var(--text-soft)"><span style="width:8px;height:8px;border-radius:50%;background:#2d6a2d;display:inline-block"></span>Ata Bostan</span>
+        <span style="display:flex;align-items:center;gap:3px;font-size:0.62rem;color:var(--text-soft)"><span style="width:8px;height:8px;border-radius:50%;background:#1a5c8a;display:inline-block"></span>Mutlukent</span>
+        <span style="display:flex;align-items:center;gap:3px;font-size:0.62rem;color:var(--text-soft)"><span style="width:8px;height:8px;border-radius:50%;background:#8a3a1a;display:inline-block"></span>Çiğdem</span>
+        <span style="display:flex;align-items:center;gap:3px;font-size:0.62rem;color:var(--text-soft)"><span style="width:8px;height:8px;border-radius:50%;background:#5a1a8a;display:inline-block"></span>Alacaatlı</span>
+        <span style="display:flex;align-items:center;gap:3px;font-size:0.62rem;color:var(--text-soft)"><span style="width:8px;height:8px;border-radius:50%;background:#4a4a4a;display:inline-block"></span>Genel</span>
+      </div>
+
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+    
+    <!-- Selected day tasks -->
+    <div class="card" id="calDayDetail" style="display:none">
+      <div class="card-header">
+        <div class="card-title" id="calDayTitle">Görevler</div>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('calDayDetail').style.display='none'">✕</button>
+      </div>
+      <div id="calDayTasks"></div>
+    </div>
+
+    <div style="text-align:center;padding:8px 0;">
+      <button class="btn btn-secondary btn-sm" onclick="printCalendar()">🖨️ Takvim Çıktısı</button>
+    </div>
+  </div>
+
+  <!-- WEATHER PAGE -->
+  <div class="page" id="page-hava">
+    <div class="section-title">🌤️ Hava Durumu</div>
+    <div class="section-sub">Ankara - Tarımsal uyarılar dahil</div>
+
+    <div id="weatherLoading" class="loading" style="justify-content:center;padding:20px 0;">
+      <div class="spinner"></div> Yükleniyor...
+    </div>
+    <div id="weatherContent" style="display:none">
+      
+      <div class="card" id="currentWeatherCard">
+        <div style="text-align:center;padding:12px 0;">
+          <div style="font-size:3rem" id="wCurrentIcon">⛅</div>
+          <div style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:900;color:var(--leaf)" id="wCurrentTemp">--°C</div>
+          <div style="font-size:0.82rem;color:var(--text-soft)" id="wCurrentDesc">—</div>
+          <div style="display:flex;justify-content:center;gap:16px;margin-top:10px;font-size:0.72rem;color:var(--text-soft)">
+            <span>💧 <span id="wHumidity">--%</span></span>
+            <span>💨 <span id="wWind">-- km/s</span></span>
+            <span>🌧️ <span id="wRain">-- mm</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agri alerts -->
+      <div id="agriAlerts"></div>
+
+      <!-- 7-day forecast -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;">📆 7 Günlük Tahmin</div>
+        <div class="weather-strip" id="forecastStrip"></div>
+      </div>
+
+      <!-- Agri advice -->
+      <div class="card" id="agriAdviceCard">
+        <div class="card-title" style="margin-bottom:10px;">🌱 Tarımsal Tavsiyeler</div>
+        <div id="agriAdvice" style="font-size:0.78rem;color:var(--text-soft);line-height:1.6;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEAVE PAGE -->
+  <div class="page" id="page-izin">
+    <div class="section-title">🏖️ İzin Takibi</div>
+    
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px;">📊 İzin Durumu</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <span style="font-size:0.75rem;color:var(--text-soft)">Yıllık İzin Hakkı</span>
+        <span style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:var(--leaf)" id="totalLeave">30</span>
+      </div>
+      <div class="leave-bar">
+        <div class="leave-fill" id="leaveFill" style="width:100%"></div>
+      </div>
+      <div class="leave-stats">
+        <span>Kullanılan: <strong id="usedLeave">0</strong></span>
+        <span>Kalan: <strong id="remainLeave" style="color:var(--leaf)">30</strong></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px;">⚙️ İzin Ayarları</div>
+      <div class="form-group">
+        <label class="form-label">Toplam Yıllık İzin Günü</label>
+        <input type="number" id="totalLeaveInput" value="30" min="1" max="60" onchange="updateLeaveTotal()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mevcut Kalan İzin (gün girin)</label>
+        <input type="number" id="remainLeaveInput" placeholder="Kalan gün sayısı" min="0">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="setRemainingLeave()">Güncelle</button>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">➕ İzin Kaydı</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Başlangıç Tarihi</label>
+        <input type="date" id="leaveStart">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bitiş Tarihi</label>
+        <input type="date" id="leaveEnd">
+      </div>
+      <div class="form-group">
+        <label class="form-label">İzin Türü</label>
+        <select id="leaveType">
+          <option value="yillik">Yıllık İzin</option>
+          <option value="hastalik">Hastalık İzni</option>
+          <option value="idari">İdari İzin</option>
+          <option value="mazeret">Mazeret İzni</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Not (isteğe bağlı)</label>
+        <input type="text" id="leaveNote" placeholder="İzin nedeni...">
+      </div>
+      <button class="btn btn-primary btn-full" onclick="addLeave()">İzni Kaydet</button>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📜 İzin Geçmişi</div>
+        <button class="btn btn-secondary btn-sm" onclick="printLeave()">🖨️ Çıktı</button>
+      </div>
+      <div id="leaveHistory">
+        <div class="empty-state"><div class="empty-icon">📆</div><p>Henüz izin kaydı yok</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VOICE / CHAT PAGE -->
+  <div class="page" id="page-asistan">
+    <div class="section-title">🤖 AI Asistan</div>
+    <div class="section-sub">Sesli veya yazılı konuş, görev ekle, sorgula</div>
+
+    <div class="card voice-area" style="background:white;">
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-msg system">Merhaba Sertaç! Bostan Asistanına hoş geldiniz. Sesli veya yazılı görev ekleyebilir, sorgulayabilir, hava durumu sorabilirsiniz.</div>
+      </div>
+      <div class="voice-controls">
+        <button class="mic-btn" id="micBtn" onclick="toggleMic()">🎙️</button>
+        <div class="voice-input-wrap">
+          <input type="text" id="chatInput" placeholder="Mesaj yaz veya mikrofona bas..." 
+            onkeydown="if(event.key==='Enter')sendChat()">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="sendChat()">Gönder</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+        <button class="chip" onclick="quickPrompt('Bugünkü görevlerimi listele')">📋 Bugün</button>
+        <button class="chip" onclick="quickPrompt('Sulama uyarısı var mı?')">💧 Sulama</button>
+        <button class="chip" onclick="quickPrompt('Hava durumu nasıl?')">🌤️ Hava</button>
+        <button class="chip" onclick="quickPrompt('Bu hafta ne yapmalıyım?')">📅 Hafta</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="margin-bottom:10px;">🔊 Metin Okuma</div>
+      <textarea id="ttsText" placeholder="Okunmasını istediğiniz metni girin..." style="margin-bottom:8px;"></textarea>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" onclick="speakText()">▶️ Oku</button>
+        <button class="btn btn-secondary" onclick="stopSpeak()">⏹ Durdur</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-item active" onclick="showPage('dashboard',this)">
+    <span class="icon">🏠</span>Ana Sayfa
+  </button>
+  <button class="nav-item" onclick="showPage('gorevler',this)">
+    <span class="icon">📋</span>Görevler
+    <span class="nav-badge" id="pendingBadge">0</span>
+  </button>
+  <button class="nav-item" onclick="showPage('takvim',this)">
+    <span class="icon">📅</span>Takvim
+  </button>
+  <button class="nav-item" onclick="showPage('hava',this)">
+    <span class="icon">🌤️</span>Hava
+  </button>
+  <button class="nav-item" onclick="showPage('izin',this)">
+    <span class="icon">🏖️</span>İzin
+  </button>
+  <button class="nav-item" onclick="showPage('asistan',this)">
+    <span class="icon">🤖</span>Asistan
+  </button>
+</nav>
+
+<!-- ADD TASK MODAL -->
+<div class="modal-overlay" id="addTaskModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">➕ Yeni Görev</div>
+    
+    <div class="form-group">
+      <label class="form-label">Görev Adı *</label>
+      <input type="text" id="newTaskTitle" placeholder="Görevi tanımlayın...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Şehir / Bostan</label>
+      <select id="newTaskSite">
+        <option value="genel">Genel</option>
+        <option value="ata">🌾 Ata Bostan</option>
+        <option value="mutlukent">🏙️ Mutlukent</option>
+        <option value="cigdem">🌿 Çiğdem Emekli</option>
+        <option value="alacaatli">🌻 Alacaatlı</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Kategori</label>
+      <select id="newTaskCategory">
+        <option value="sulama">💧 Sulama</option>
+        <option value="gübreleme">🌿 Gübreleme</option>
+        <option value="ekim">🌱 Ekim/Dikim</option>
+        <option value="hasat">🥬 Hasat</option>
+        <option value="bakim">✂️ Bakım/Budama</option>
+        <option value="egitim">📚 Eğitim</option>
+        <option value="toplanti">👥 Toplantı</option>
+        <option value="raporlama">📊 Raporlama</option>
+        <option value="golgeleme">☂️ Gölgeleme</option>
+        <option value="ilaclama">🔬 İlaçlama</option>
+        <option value="diger">📌 Diğer</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tarih</label>
+      <input type="date" id="newTaskDate">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Saat (opsiyonel)</label>
+      <input type="time" id="newTaskTime">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Öncelik</label>
+      <select id="newTaskPriority">
+        <option value="orta">⚡ Orta</option>
+        <option value="yuksek">🔴 Yüksek</option>
+        <option value="dusuk">🟢 Düşük</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Not</label>
+      <textarea id="newTaskNote" placeholder="Ek notlar..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tekrar</label>
+      <select id="newTaskRecurring">
+        <option value="yok">Tekrar Yok</option>
+        <option value="haftalik">Haftalık</option>
+        <option value="aylik">Aylık</option>
+      </select>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:4px;">
+      <button class="btn btn-primary" style="flex:1" onclick="saveTask()">💾 Kaydet</button>
+      <button class="btn btn-secondary" style="flex:1" onclick="closeModal('addTaskModal')">İptal</button>
+    </div>
+  </div>
+</div>
+
+<!-- TASK DETAIL MODAL -->
+<div class="modal-overlay" id="taskDetailModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="detailTitle">Görev Detayı</div>
+    <div id="detailContent"></div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="btn btn-primary" style="flex:1" id="detailToggleBtn" onclick="toggleDetailTask()">✅ Tamamla</button>
+      <button class="btn btn-danger" style="flex:1" onclick="deleteDetailTask()">🗑️ Sil</button>
+      <button class="btn btn-secondary" onclick="closeModal('taskDetailModal')">✕</button>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn btn-secondary btn-full" onclick="speakTaskDetail()">🔊 Sesli Oku</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT SECTION (hidden, for print) -->
+<div id="print-section" style="display:none;"></div>
+
+<script>
+// ============================================================
+// STATE & STORAGE
+// ============================================================
+const DB = {
+  get: (k, def=null) => { try { const v=localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch { return def; } },
+  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch{} }
+};
+
+let state = {
+  tasks: DB.get('bostan_tasks', []),
+  leaves: DB.get('bostan_leaves', []),
+  leaveTotal: DB.get('bostan_leave_total', 30),
+  leaveRemaining: DB.get('bostan_leave_remaining', 30),
+  weather: null,
+  calYear: new Date().getFullYear(),
+  calMonth: new Date().getMonth(),
+  currentTaskFilter: 'haftalik',
+  currentSiteFilter: 'tumu',
+  selectedDetailId: null,
+  chatHistory: [],
+};
+
+const SITE_COLORS = {
+  ata: '#2d6a2d', mutlukent: '#1a5c8a', cigdem: '#8a3a1a',
+  alacaatli: '#5a1a8a', genel: '#4a4a4a'
+};
+const SITE_LABELS = {
+  ata: 'Ata Bostan', mutlukent: 'Mutlukent', cigdem: 'Çiğdem',
+  alacaatli: 'Alacaatlı', genel: 'Genel'
+};
+const CAT_ICONS = {
+  sulama:'💧', gübreleme:'🌿', ekim:'🌱', hasat:'🥬', bakim:'✂️',
+  egitim:'📚', toplanti:'👥', raporlama:'📊', golgeleme:'☂️', ilaclama:'🔬', diger:'📌'
+};
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+  else {
+    const items = document.querySelectorAll('.nav-item');
+    const pages = ['dashboard','gorevler','takvim','hava','izin','asistan'];
+    const idx = pages.indexOf(id);
+    if(idx >= 0) items[idx].classList.add('active');
+  }
+  if(id==='hava') loadWeather();
+  if(id==='takvim') renderCalendar();
+  if(id==='gorevler') renderTaskList();
+  if(id==='izin') renderLeave();
+  if(id==='dashboard') renderDashboard();
+}
+
+// ============================================================
+// TIME & DATE
+// ============================================================
+function pad(n){return String(n).padStart(2,'0');}
+const TR_DAYS = ['Pazar','Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi'];
+const TR_DAYS_SHORT = ['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
+const TR_MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+
+function formatDate(d) {
+  const dt = new Date(d);
+  return `${dt.getDate()} ${TR_MONTHS[dt.getMonth()]} ${dt.getFullYear()}`;
+}
+function todayStr() {
+  const d=new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+function isToday(dateStr) { return dateStr === todayStr(); }
+function isThisWeek(dateStr) {
+  const d = new Date(dateStr);
+  const now = new Date();
+  const start = new Date(now); start.setDate(now.getDate() - now.getDay());
+  const end = new Date(start); end.setDate(start.getDate() + 6);
+  start.setHours(0,0,0,0); end.setHours(23,59,59,999);
+  return d >= start && d <= end;
+}
+function isThisMonth(dateStr) {
+  const d = new Date(dateStr);
+  const now = new Date();
+  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+}
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('headerDate').textContent = `${TR_DAYS[now.getDay()]} ${now.getDate()} ${TR_MONTHS[now.getMonth()]}`;
+  document.getElementById('headerTime').textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ============================================================
+// WEATHER (Open-Meteo - free, no key)
+// ============================================================
+const ANKARA_LAT = 39.9255;
+const ANKARA_LON = 32.8663;
+
+const WEATHER_CODES = {
+  0:'☀️', 1:'🌤️', 2:'⛅', 3:'☁️',
+  45:'🌫️', 48:'🌫️',
+  51:'🌦️', 53:'🌦️', 55:'🌧️',
+  61:'🌧️', 63:'🌧️', 65:'🌧️',
+  71:'🌨️', 73:'🌨️', 75:'❄️',
+  80:'🌦️', 81:'🌧️', 82:'⛈️',
+  95:'⛈️', 96:'⛈️', 99:'⛈️',
+};
+const WEATHER_DESC = {
+  0:'Açık', 1:'Az Bulutlu', 2:'Parçalı Bulutlu', 3:'Kapalı',
+  45:'Sisli', 48:'Sisli', 51:'Çisenti', 53:'Çisenti', 55:'Yoğun Çisenti',
+  61:'Hafif Yağmur', 63:'Yağmur', 65:'Kuvvetli Yağmur',
+  71:'Hafif Kar', 73:'Kar', 75:'Yoğun Kar',
+  80:'Sağanak', 81:'Kuvvetli Sağanak', 82:'Şiddetli Sağanak',
+  95:'Fırtına', 96:'Fırtına', 99:'Şiddetli Fırtına',
+};
+
+async function loadWeather() {
+  if(state.weather && state.weatherTs && (Date.now()-state.weatherTs < 1800000)) {
+    renderWeather(); return;
+  }
+  document.getElementById('weatherLoading').style.display='flex';
+  document.getElementById('weatherContent').style.display='none';
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${ANKARA_LAT}&longitude=${ANKARA_LON}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode,windspeed_10m_max,relative_humidity_2m_max&hourly=temperature_2m,relative_humidity_2m,windspeed_10m,precipitation,weathercode&current_weather=true&timezone=Europe%2FIstanbul&forecast_days=7`;
+    const res = await fetch(url);
+    const data = await res.json();
+    state.weather = data;
+    state.weatherTs = Date.now();
+    renderWeather();
+  } catch(e) {
+    document.getElementById('weatherLoading').textContent = '⚠️ Hava verisi alınamadı';
+  }
+}
+
+function renderWeather() {
+  const w = state.weather;
+  if(!w) return;
+  const cur = w.current_weather;
+  document.getElementById('weatherLoading').style.display='none';
+  document.getElementById('weatherContent').style.display='block';
+  const icon = WEATHER_CODES[cur.weathercode] || '🌡️';
+  const desc = WEATHER_DESC[cur.weathercode] || '';
+  document.getElementById('wCurrentIcon').textContent = icon;
+  document.getElementById('wCurrentTemp').textContent = `${Math.round(cur.temperature)}°C`;
+  document.getElementById('wCurrentDesc').textContent = desc;
+  // today's hour index
+  const now = new Date();
+  const hourIdx = w.hourly.time.findIndex(t => t.startsWith(todayStr()+'T'+pad(now.getHours())));
+  const hi = hourIdx >= 0 ? hourIdx : 0;
+  document.getElementById('wHumidity').textContent = (w.hourly.relative_humidity_2m[hi]||'--')+'%';
+  document.getElementById('wWind').textContent = Math.round(cur.windspeed)+' km/s';
+  document.getElementById('wRain').textContent = (w.daily.precipitation_sum[0]||0)+' mm';
+  // header badge
+  document.getElementById('headerWeatherIcon').textContent = icon;
+  document.getElementById('headerTemp').textContent = Math.round(cur.temperature)+'°';
+  // Forecast strip
+  const fs = document.getElementById('forecastStrip');
+  fs.innerHTML = '';
+  const qs = document.getElementById('quickWeatherStrip');
+  qs.innerHTML = '';
+  w.daily.time.forEach((date, i) => {
+    const d = new Date(date);
+    const dayName = i===0 ? 'Bugün' : TR_DAYS_SHORT[d.getDay()];
+    const ico = WEATHER_CODES[w.daily.weathercode[i]]||'⛅';
+    const tmax = Math.round(w.daily.temperature_2m_max[i]);
+    const tmin = Math.round(w.daily.temperature_2m_min[i]);
+    const rain = w.daily.precipitation_sum[i]||0;
+    const isAlert = tmax > 35 || rain > 15;
+    
+    const el = document.createElement('div');
+    el.className = 'weather-day' + (i===0?' today':'') + (isAlert?' alert-day':'');
+    el.innerHTML = `<div class="wd-day">${dayName}<br><span style="font-size:0.58rem">${d.getDate()} ${TR_MONTHS[d.getMonth()].slice(0,3)}</span></div>
+      <div class="wd-icon">${ico}</div>
+      <div class="wd-temp">${tmax}° / ${tmin}°</div>
+      <div class="wd-rain">${rain>0?'🌧️ '+rain+' mm':''}</div>`;
+    fs.appendChild(el.cloneNode(true));
+    qs.appendChild(el);
+  });
+  // Agri alerts
+  generateAgriAlerts(w);
+  generateAgriAdvice(w);
+}
+
+function generateAgriAlerts(w) {
+  const container = document.getElementById('agriAlerts');
+  const smartContainer = document.getElementById('smartAlerts');
+  container.innerHTML = '';
+  if(smartContainer) smartContainer.innerHTML = '';
+  const alerts = [];
+  
+  const tmax = w.daily.temperature_2m_max;
+  const rain = w.daily.precipitation_sum;
+  const humidity = w.hourly.relative_humidity_2m;
+  const avgHum = humidity.slice(0,24).reduce((a,b)=>a+b,0)/24;
+  
+  if(tmax[0] > 32) alerts.push({type:'warning', icon:'☀️', text:`Bugün sıcaklık ${Math.round(tmax[0])}°C'ye ulaşacak. Sabah erken sulama yapın, öğleden sonra gölgeleme şeridi kontrol edin.`});
+  if(tmax[1] > 32 || tmax[2] > 32) alerts.push({type:'warning', icon:'🌡️', text:`Önümüzdeki günlerde yüksek sıcaklık bekleniyor. Fideleri öğle saatlerinde gölgeleyin.`});
+  if(rain[0] > 10) alerts.push({type:'info', icon:'🌧️', text:`Bugün ${rain[0]} mm yağış bekleniyor. Sulama yapmanıza gerek yok.`});
+  if(rain[0] < 1 && rain[1] < 1 && tmax[0] > 28) alerts.push({type:'warning', icon:'💧', text:`Yağış beklemiyor ve hava sıcak. Tüm bostanlarda sulama kontrolü yapın.`});
+  if(avgHum > 80) alerts.push({type:'warning', icon:'🍄', text:`Nem oranı yüksek (%${Math.round(avgHum)}). Mildiyö ve külleme riski var. Yaprak ıslaklığını kontrol edin.`});
+  if(w.current_weather.windspeed > 40) alerts.push({type:'warning', icon:'💨', text:`Kuvvetli rüzgar: ${Math.round(w.current_weather.windspeed)} km/s. Fide kafeslerini ve gölgeleme örtülerini sabitleyin.`});
+  
+  if(alerts.length === 0) {
+    const ok = {type:'success', icon:'✅', text:'Hava koşulları uygun. Olağan bakım çalışmalarına devam edebilirsiniz.'};
+    alerts.push(ok);
+  }
+  
+  alerts.forEach(a => {
+    const el = document.createElement('div');
+    el.className = `alert-bar ${a.type}`;
+    el.innerHTML = `<span class="alert-icon">${a.icon}</span><span>${a.text}</span>`;
+    container.appendChild(el.cloneNode(true));
+    if(smartContainer) smartContainer.appendChild(el);
+  });
+}
+
+function generateAgriAdvice(w) {
+  const tmax = w.daily.temperature_2m_max[0];
+  const rain = w.daily.precipitation_sum[0];
+  const advices = [];
+  
+  if(tmax > 30 && rain < 2) advices.push('🕕 Sulama saati: Sabah 06:00–08:00 veya akşam 19:00–21:00 arasında tercih edin.');
+  if(tmax > 35) advices.push('☂️ Gölgeleme: Domates, biber ve salatalık parselleri için %50 gölge neti örtün.');
+  const month = new Date().getMonth()+1;
+  if(month >= 4 && month <= 6) advices.push('🌱 Sezon: Fasulye, kabak ve mısır ekimi için uygun dönem. Toprak sıcaklığı > 15°C olduğunda ekebiliniz.');
+  if(month >= 7 && month <= 9) advices.push('🥬 Sonbahar hazırlığı: Lahana, ıspanak ve marul fidelerini hazırlayın.');
+  advices.push('🐛 Haftalık pest kontrolü: Yaprak piresi (psyllid), kırmızı örümcek ve beyazsinekler için yaprak altlarını inceleyin.');
+  advices.push('🪱 Organik takviye: Kompost veya vermikompost uygulaması için bu hafta uygun.');
+  
+  document.getElementById('agriAdvice').innerHTML = advices.map(a => `<p style="margin-bottom:6px">${a}</p>`).join('');
+}
+
+// ============================================================
+// TASKS
+// ============================================================
+function saveTasks() { DB.set('bostan_tasks', state.tasks); updateBadges(); }
+
+function openAddTask() {
+  document.getElementById('newTaskDate').value = todayStr();
+  document.getElementById('newTaskTitle').value = '';
+  document.getElementById('newTaskNote').value = '';
+  document.getElementById('addTaskModal').classList.add('open');
+}
+
+function saveTask() {
+  const title = document.getElementById('newTaskTitle').value.trim();
+  if(!title) { showToast('⚠️ Görev adı gerekli!'); return; }
+  
+  const task = {
+    id: Date.now().toString(),
+    title,
+    site: document.getElementById('newTaskSite').value,
+    category: document.getElementById('newTaskCategory').value,
+    date: document.getElementById('newTaskDate').value,
+    time: document.getElementById('newTaskTime').value,
+    priority: document.getElementById('newTaskPriority').value,
+    note: document.getElementById('newTaskNote').value,
+    recurring: document.getElementById('newTaskRecurring').value,
+    done: false,
+    createdAt: new Date().toISOString()
+  };
+  
+  state.tasks.push(task);
+  saveTasks();
+  closeModal('addTaskModal');
+  renderDashboard();
+  renderTaskList();
+  showToast('✅ Görev eklendi!');
+}
+
+function renderTaskList() {
+  const container = document.getElementById('taskListContainer');
+  let tasks = [...state.tasks];
+  
+  // Time filter
+  if(state.currentTaskFilter === 'haftalik') tasks = tasks.filter(t => isThisWeek(t.date));
+  else if(state.currentTaskFilter === 'aylik') tasks = tasks.filter(t => isThisMonth(t.date));
+  
+  // Site filter
+  if(state.currentSiteFilter !== 'tumu') tasks = tasks.filter(t => t.site === state.currentSiteFilter);
+  
+  // Sort: incomplete first, then by date
+  tasks.sort((a,b) => {
+    if(a.done !== b.done) return a.done ? 1 : -1;
+    return new Date(a.date) - new Date(b.date);
+  });
+  
+  if(tasks.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🌿</div><p>Bu filtre için görev bulunamadı</p></div>';
+    return;
+  }
+  
+  container.innerHTML = tasks.map(t => taskItemHTML(t)).join('');
+}
+
+function taskItemHTML(t) {
+  const color = SITE_COLORS[t.site]||'#4a4a4a';
+  const catIcon = CAT_ICONS[t.category]||'📌';
+  return `<div class="task-item${t.done?' done':''}" onclick="openTaskDetail('${t.id}')">
+    <div class="task-check${t.done?' checked':''}" onclick="event.stopPropagation();toggleTask('${t.id}')"></div>
+    <div class="priority-dot priority-${t.priority}"></div>
+    <div class="task-body">
+      <div class="task-title">${catIcon} ${t.title}</div>
+      <div class="task-meta">
+        <span class="site-badge site-${t.site}" style="background:${color}">${SITE_LABELS[t.site]||t.site}</span>
+        <span>📅 ${formatDate(t.date)}${t.time?' '+t.time:''}</span>
+        ${t.note?`<span style="color:#7a5a3a">📝 ${t.note.slice(0,30)}${t.note.length>30?'...':''}</span>`:''}
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleTask(id) {
+  const t = state.tasks.find(t => t.id === id);
+  if(t) { t.done = !t.done; saveTasks(); renderDashboard(); renderTaskList(); }
+}
+
+function openTaskDetail(id) {
+  const t = state.tasks.find(t => t.id === id);
+  if(!t) return;
+  state.selectedDetailId = id;
+  document.getElementById('detailTitle').textContent = `${CAT_ICONS[t.category]||'📌'} ${t.title}`;
+  const btn = document.getElementById('detailToggleBtn');
+  btn.textContent = t.done ? '↩️ Geri Al' : '✅ Tamamla';
+  document.getElementById('detailContent').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:8px;font-size:0.82rem;color:var(--text-soft)">
+      <div>📍 <strong>Bostan:</strong> <span class="site-badge site-${t.site}" style="background:${SITE_COLORS[t.site]};color:white">${SITE_LABELS[t.site]}</span></div>
+      <div>📅 <strong>Tarih:</strong> ${formatDate(t.date)}${t.time?' · '+t.time:''}</div>
+      <div>⚡ <strong>Öncelik:</strong> ${t.priority}</div>
+      <div>🏷️ <strong>Kategori:</strong> ${t.category}</div>
+      ${t.note?`<div>📝 <strong>Not:</strong> ${t.note}</div>`:''}
+      ${t.recurring!=='yok'?`<div>🔄 <strong>Tekrar:</strong> ${t.recurring}</div>`:''}
+      <div>📊 <strong>Durum:</strong> ${t.done?'✅ Tamamlandı':'⏳ Bekliyor'}</div>
+    </div>`;
+  document.getElementById('taskDetailModal').classList.add('open');
+}
+
+function toggleDetailTask() {
+  toggleTask(state.selectedDetailId);
+  const t = state.tasks.find(t => t.id === state.selectedDetailId);
+  if(t) document.getElementById('detailToggleBtn').textContent = t.done ? '↩️ Geri Al' : '✅ Tamamla';
+}
+
+function deleteDetailTask() {
+  if(!confirm('Bu görevi silmek istiyor musunuz?')) return;
+  state.tasks = state.tasks.filter(t => t.id !== state.selectedDetailId);
+  saveTasks();
+  closeModal('taskDetailModal');
+  renderDashboard();
+  renderTaskList();
+  showToast('🗑️ Görev silindi');
+}
+
+function setTaskTab(tab, el) {
+  state.currentTaskFilter = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderTaskList();
+}
+
+function filterSite(site, el) {
+  state.currentSiteFilter = site;
+  document.querySelectorAll('#siteFilter .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderTaskList();
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard() {
+  const total = state.tasks.length;
+  const done = state.tasks.filter(t=>t.done).length;
+  const pending = total - done;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statDone').textContent = done;
+  document.getElementById('statPending').textContent = pending;
+  document.getElementById('statLeave').textContent = state.leaveRemaining;
+  
+  // Today tasks
+  const todayTasks = state.tasks.filter(t => isToday(t.date));
+  const container = document.getElementById('todayTaskList');
+  if(todayTasks.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🌿</div><p>Bugün için görev yok</p></div>';
+  } else {
+    container.innerHTML = todayTasks.map(t => taskItemHTML(t)).join('');
+  }
+  
+  updateBadges();
+  if(state.weather) generateAgriAlerts(state.weather);
+  else loadWeather();
+}
+
+function updateBadges() {
+  const pending = state.tasks.filter(t => !t.done && isThisWeek(t.date)).length;
+  document.getElementById('pendingBadge').textContent = pending;
+  document.getElementById('pendingBadge').style.display = pending > 0 ? '' : 'none';
+}
+
+// ============================================================
+// CALENDAR
+// ============================================================
+function renderCalendar() {
+  const y = state.calYear, m = state.calMonth;
+  document.getElementById('calMonthLabel').textContent = `${TR_MONTHS[m]} ${y}`;
+  
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  
+  // Headers
+  TR_DAYS_SHORT.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-header-day';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+  
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const daysInPrev = new Date(y, m, 0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+  
+  // Prev month padding
+  for(let i = firstDay - 1; i >= 0; i--) {
+    addCalDay(grid, daysInPrev - i, y, m-1, true);
+  }
+  
+  // Current month
+  for(let d = 1; d <= daysInMonth; d++) {
+    const isT = today.getDate()===d && today.getMonth()===m && today.getFullYear()===y;
+    addCalDay(grid, d, y, m, false, isT);
+  }
+}
+
+function addCalDay(grid, day, y, m, other, isToday=false) {
+  const el = document.createElement('div');
+  el.className = 'cal-day' + (other?' other-month':'') + (isToday?' today':'');
+  
+  const realY = m < 0 ? y-1 : (m > 11 ? y+1 : y);
+  const realM = ((m % 12) + 12) % 12;
+  const dateStr = `${realY}-${pad(realM+1)}-${pad(day)}`;
+  
+  const dayTasks = state.tasks.filter(t => t.date === dateStr);
+  
+  el.innerHTML = `<div class="cal-num">${day}</div>
+    <div class="cal-dots">${dayTasks.slice(0,4).map(t => 
+      `<div class="cal-dot" style="background:${SITE_COLORS[t.site]||'#4a4a4a'}" title="${t.title}"></div>`
+    ).join('')}</div>`;
+  
+  if(!other) {
+    el.onclick = () => showCalDayDetail(dateStr);
+  }
+  
+  grid.appendChild(el);
+}
+
+function showCalDayDetail(dateStr) {
+  const tasks = state.tasks.filter(t => t.date === dateStr);
+  const detail = document.getElementById('calDayDetail');
+  document.getElementById('calDayTitle').textContent = `📅 ${formatDate(dateStr)}`;
+  if(tasks.length === 0) {
+    document.getElementById('calDayTasks').innerHTML = '<div style="font-size:0.8rem;color:var(--text-soft);padding:8px 0">Bu gün için görev yok</div>';
+  } else {
+    document.getElementById('calDayTasks').innerHTML = tasks.map(t => taskItemHTML(t)).join('');
+  }
+  detail.style.display = 'block';
+  detail.scrollIntoView({behavior:'smooth'});
+}
+
+function changeMonth(delta) {
+  state.calMonth += delta;
+  if(state.calMonth > 11) { state.calMonth = 0; state.calYear++; }
+  if(state.calMonth < 0) { state.calMonth = 11; state.calYear--; }
+  renderCalendar();
+}
+
+// ============================================================
+// LEAVE MANAGEMENT
+// ============================================================
+function renderLeave() {
+  const total = state.leaveTotal;
+  const remaining = state.leaveRemaining;
+  const used = total - remaining;
+  document.getElementById('totalLeave').textContent = total;
+  document.getElementById('usedLeave').textContent = used;
+  document.getElementById('remainLeave').textContent = remaining;
+  document.getElementById('leaveFill').style.width = (remaining/total*100)+'%';
+  document.getElementById('totalLeaveInput').value = total;
+  
+  const hist = document.getElementById('leaveHistory');
+  if(state.leaves.length === 0) {
+    hist.innerHTML = '<div class="empty-state"><div class="empty-icon">📆</div><p>Henüz izin kaydı yok</p></div>';
+    return;
+  }
+  hist.innerHTML = state.leaves.sort((a,b)=>new Date(b.start)-new Date(a.start)).map(l => `
+    <div style="padding:10px;border:1px solid rgba(74,124,89,0.2);border-radius:10px;margin-bottom:8px;background:rgba(255,255,255,0.7)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-weight:600;font-size:0.82rem;color:var(--text)">${l.type}</span>
+        <span style="font-size:0.72rem;color:var(--leaf);font-weight:600">${l.days} gün</span>
+      </div>
+      <div style="font-size:0.72rem;color:var(--text-soft)">${formatDate(l.start)} → ${formatDate(l.end)}</div>
+      ${l.note?`<div style="font-size:0.7rem;color:var(--text-soft);margin-top:3px">📝 ${l.note}</div>`:''}
+    </div>
+  `).join('');
+}
+
+function updateLeaveTotal() {
+  state.leaveTotal = parseInt(document.getElementById('totalLeaveInput').value)||30;
+  DB.set('bostan_leave_total', state.leaveTotal);
+  renderLeave();
+}
+
+function setRemainingLeave() {
+  const val = parseInt(document.getElementById('remainLeaveInput').value);
+  if(isNaN(val) || val < 0) { showToast('⚠️ Geçerli bir değer girin'); return; }
+  state.leaveRemaining = val;
+  DB.set('bostan_leave_remaining', val);
+  document.getElementById('remainLeaveInput').value = '';
+  renderLeave();
+  renderDashboard();
+  showToast(`✅ Kalan izin ${val} gün olarak güncellendi`);
+}
+
+function addLeave() {
+  const start = document.getElementById('leaveStart').value;
+  const end = document.getElementById('leaveEnd').value;
+  if(!start || !end) { showToast('⚠️ Tarih seçin'); return; }
+  const s = new Date(start), e = new Date(end);
+  if(e < s) { showToast('⚠️ Bitiş başlangıçtan önce olamaz'); return; }
+  
+  const days = Math.round((e-s)/(1000*60*60*24)) + 1;
+  // Count only weekdays
+  let workdays = 0;
+  for(let d=new Date(s); d<=e; d.setDate(d.getDate()+1)) {
+    if(d.getDay()!==0 && d.getDay()!==6) workdays++;
+  }
+  
+  const ltype = document.getElementById('leaveType').options[document.getElementById('leaveType').selectedIndex].text;
+  const leave = {
+    id: Date.now().toString(),
+    start, end, days: workdays, type: ltype,
+    note: document.getElementById('leaveNote').value
+  };
+  
+  state.leaves.push(leave);
+  DB.set('bostan_leaves', state.leaves);
+  
+  if(document.getElementById('leaveType').value === 'yillik') {
+    state.leaveRemaining = Math.max(0, state.leaveRemaining - workdays);
+    DB.set('bostan_leave_remaining', state.leaveRemaining);
+  }
+  
+  document.getElementById('leaveStart').value = '';
+  document.getElementById('leaveEnd').value = '';
+  document.getElementById('leaveNote').value = '';
+  renderLeave();
+  renderDashboard();
+  showToast(`✅ ${workdays} günlük izin kaydedildi`);
+}
+
+// ============================================================
+// VOICE / SPEECH
+// ============================================================
+let recognition = null;
+let isRecording = false;
+let currentSpeech = null;
+
+function speakText(text) {
+  if(!text) text = document.getElementById('ttsText').value;
+  if(!text) { showToast('Okunacak metin yok'); return; }
+  stopSpeak();
+  currentSpeech = new SpeechSynthesisUtterance(text);
+  currentSpeech.lang = 'tr-TR';
+  currentSpeech.rate = 0.9;
+  const voices = speechSynthesis.getVoices();
+  const trVoice = voices.find(v => v.lang.startsWith('tr'));
+  if(trVoice) currentSpeech.voice = trVoice;
+  speechSynthesis.speak(currentSpeech);
+}
+
+function stopSpeak() {
+  speechSynthesis.cancel();
+}
+
+function speakTaskDetail() {
+  const t = state.tasks.find(t => t.id === state.selectedDetailId);
+  if(!t) return;
+  const text = `${t.title}. ${SITE_LABELS[t.site]} bostanı. ${formatDate(t.date)}. Öncelik: ${t.priority}. ${t.done?'Tamamlandı.':'Bekliyor.'} ${t.note||''}`;
+  speakText(text);
+}
+
+function toggleMic() {
+  if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    showToast('⚠️ Tarayıcınız ses tanımayı desteklemiyor');
+    return;
+  }
+  if(isRecording) {
+    recognition && recognition.stop();
+    isRecording = false;
+    document.getElementById('micBtn').classList.remove('recording');
+    document.getElementById('micBtn').textContent = '🎙️';
+  } else {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SR();
+    recognition.lang = 'tr-TR';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.onstart = () => {
+      isRecording = true;
+      document.getElementById('micBtn').classList.add('recording');
+      document.getElementById('micBtn').textContent = '⏹';
+    };
+    recognition.onresult = (e) => {
+      const text = e.results[0][0].transcript;
+      document.getElementById('chatInput').value = text;
+      sendChat();
+    };
+    recognition.onerror = () => {
+      isRecording = false;
+      document.getElementById('micBtn').classList.remove('recording');
+      document.getElementById('micBtn').textContent = '🎙️';
+    };
+    recognition.onend = () => {
+      isRecording = false;
+      document.getElementById('micBtn').classList.remove('recording');
+      document.getElementById('micBtn').textContent = '🎙️';
+    };
+    recognition.start();
+  }
+}
+
+// ============================================================
+// AI CHAT
+// ============================================================
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if(!msg) return;
+  input.value = '';
+  
+  addChatMsg(msg, 'user');
+  
+  // Build context
+  const todayTasks = state.tasks.filter(t => isToday(t.date));
+  const weekTasks = state.tasks.filter(t => isThisWeek(t.date) && !t.done);
+  const pendingCount = state.tasks.filter(t=>!t.done).length;
+  const weatherInfo = state.weather ? 
+    `Sıcaklık: ${Math.round(state.weather.current_weather.temperature)}°C, ${WEATHER_DESC[state.weather.current_weather.weathercode]||''}, Yağış(bugün): ${state.weather.daily.precipitation_sum[0]||0}mm` 
+    : 'Hava verisi yok';
+  
+  const systemPrompt = `Sen Sertaç'ın Ankara Çankaya Belediyesi Bostan Yöneticisi uygulamasının AI asistanısın. 
+Sertaç, 15 yıl deneyimli kent tarımı koordinatörüdür. Sorumlu olduğu bostanlar: Ata Bostan, Mutlukent, Çiğdem Emekli Kampüsü, Alacaatlı.
+Şu anki durum:
+- Toplam görev: ${state.tasks.length}, Tamamlanan: ${state.tasks.filter(t=>t.done).length}, Bekleyen: ${pendingCount}
+- Bugünkü görevler (${todayTasks.length}): ${todayTasks.map(t=>t.title).join(', ')||'Yok'}
+- Bu hafta bekleyen (${weekTasks.length}): ${weekTasks.slice(0,5).map(t=>t.title+' ('+SITE_LABELS[t.site]+')').join(', ')||'Yok'}
+- Kalan izin: ${state.leaveRemaining} gün
+- Hava: ${weatherInfo}
+- Tarih: ${new Date().toLocaleDateString('tr-TR', {weekday:'long', year:'numeric', month:'long', day:'numeric'})}
+
+Türkçe cevap ver. Kısa, pratik ve samimi ol. Gerekirse tarımsal tavsiyelerde organik/doğal yöntemleri öner. 
+Kullanıcı görev eklemek isterse "GÖREV_EKLE:" önekiyle bilgileri JSON formatında ver.`;
+
+  state.chatHistory.push({role:'user', content: msg});
+  
+  const thinkingEl = addChatMsg('⏳ Düşünüyor...', 'assistant', true);
+  
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: state.chatHistory.slice(-10)
+      })
+    });
+    
+    const data = await response.json();
+    const reply = data.content?.[0]?.text || 'Yanıt alınamadı.';
+    
+    thinkingEl.remove();
+    addChatMsg(reply, 'assistant');
+    state.chatHistory.push({role:'assistant', content: reply});
+    
+    // Auto-speak short replies
+    if(reply.length < 200) speakText(reply);
+    
+    // Handle task add commands
+    if(reply.includes('GÖREV_EKLE:')) {
+      try {
+        const jsonStr = reply.split('GÖREV_EKLE:')[1].trim().split('\n')[0];
+        const taskData = JSON.parse(jsonStr);
+        state.tasks.push({
+          id: Date.now().toString(),
+          title: taskData.title,
+          site: taskData.site||'genel',
+          category: taskData.category||'diger',
+          date: taskData.date||todayStr(),
+          time: taskData.time||'',
+          priority: taskData.priority||'orta',
+          note: taskData.note||'',
+          recurring: 'yok',
+          done: false,
+          createdAt: new Date().toISOString()
+        });
+        saveTasks();
+        showToast('✅ Görev otomatik eklendi!');
+      } catch(e) {}
+    }
+    
+  } catch(e) {
+    thinkingEl.remove();
+    addChatMsg('⚠️ Bağlantı hatası. Lütfen tekrar deneyin.', 'assistant');
+  }
+}
+
+function addChatMsg(text, role, temp=false) {
+  const container = document.getElementById('chatMessages');
+  const el = document.createElement('div');
+  el.className = `chat-msg ${role}`;
+  el.textContent = text;
+  container.appendChild(el);
+  container.scrollTop = container.scrollHeight;
+  return el;
+}
+
+function quickPrompt(text) {
+  document.getElementById('chatInput').value = text;
+  sendChat();
+}
+
+// ============================================================
+// PRINT
+// ============================================================
+function printTasks() {
+  let tasks = [...state.tasks];
+  if(state.currentSiteFilter !== 'tumu') tasks = tasks.filter(t => t.site === state.currentSiteFilter);
+  
+  const printWin = window.open('', '_blank');
+  printWin.document.write(`<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <title>Bostan Görevleri - ${new Date().toLocaleDateString('tr-TR')}</title>
+    <style>
+      body { font-family: Arial, sans-serif; font-size: 12px; margin: 20px; color: #1a1410; }
+      h1 { color: #2d5a27; font-size: 18px; border-bottom: 2px solid #2d5a27; padding-bottom: 8px; }
+      .meta { font-size: 10px; color: #666; margin-bottom: 16px; }
+      table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+      th { background: #2d5a27; color: white; padding: 8px; text-align: left; font-size: 11px; }
+      td { padding: 7px 8px; border-bottom: 1px solid #e0e0e0; font-size: 11px; }
+      tr:nth-child(even) { background: #f5f5f5; }
+      .done { text-decoration: line-through; color: #888; }
+      .site-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+      @media print { body { margin: 10mm; } }
+    </style>
+  </head><body>
+    <h1>🌱 Bostan Görev Listesi</h1>
+    <div class="meta">Çankaya Belediyesi - Kent Tarım Birimi | Tarih: ${new Date().toLocaleDateString('tr-TR')} | Toplam: ${tasks.length} görev</div>
+    <table>
+      <thead><tr><th>#</th><th>Görev</th><th>Bostan</th><th>Tarih</th><th>Kategori</th><th>Öncelik</th><th>Durum</th></tr></thead>
+      <tbody>
+        ${tasks.map((t,i) => `<tr>
+          <td>${i+1}</td>
+          <td class="${t.done?'done':''}">${t.title}${t.note?'<br><small style="color:#666">'+t.note+'</small>':''}</td>
+          <td><span class="site-dot" style="background:${SITE_COLORS[t.site]}"></span>${SITE_LABELS[t.site]}</td>
+          <td>${formatDate(t.date)}${t.time?' '+t.time:''}</td>
+          <td>${t.category}</td>
+          <td>${t.priority}</td>
+          <td>${t.done?'✅ Tamamlandı':'⏳ Bekliyor'}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+    <p style="margin-top:16px;font-size:10px;color:#888">Bostan Yöneticisi | Çankaya Belediyesi | ${new Date().toLocaleString('tr-TR')}</p>
+  </body></html>`);
+  printWin.document.close();
+  printWin.print();
+}
+
+function printCalendar() {
+  const y = state.calYear, m = state.calMonth;
+  const tasks = state.tasks.filter(t => {
+    const d = new Date(t.date);
+    return d.getMonth() === m && d.getFullYear() === y;
+  });
+  
+  const printWin = window.open('', '_blank');
+  printWin.document.write(`<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <title>${TR_MONTHS[m]} ${y} Takvimi</title>
+    <style>
+      body { font-family: Arial, sans-serif; font-size: 11px; margin: 15mm; }
+      h1 { color: #2d5a27; font-size: 16px; }
+      .legend { display: flex; gap: 12px; margin: 8px 0 16px; font-size: 10px; }
+      .legend-item { display: flex; align-items: center; gap: 4px; }
+      .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+      table { width: 100%; border-collapse: collapse; }
+      th { background: #2d5a27; color: white; padding: 6px; text-align: center; font-size: 10px; }
+      td { border: 1px solid #ddd; vertical-align: top; padding: 4px; width: 14.28%; height: 60px; font-size: 10px; }
+      .day-num { font-weight: bold; margin-bottom: 3px; }
+      .event { border-radius: 2px; padding: 1px 3px; margin-bottom: 1px; color: white; font-size: 9px; overflow: hidden; white-space: nowrap; }
+      .today-cell { background: #e8f5e0; }
+      @media print { @page { size: landscape; margin: 10mm; } }
+    </style>
+  </head><body>
+    <h1>📅 ${TR_MONTHS[m]} ${y} - Bostan Takvimi</h1>
+    <div class="legend">
+      ${Object.entries(SITE_LABELS).map(([k,v])=>`<div class="legend-item"><div class="legend-dot" style="background:${SITE_COLORS[k]}"></div>${v}</div>`).join('')}
+    </div>
+    <table>
+      <thead><tr>${TR_DAYS_SHORT.map(d=>`<th>${d}</th>`).join('')}</tr></thead>
+      <tbody>
+        ${generateCalendarPrintRows(y, m, tasks)}
+      </tbody>
+    </table>
+  </body></html>`);
+  printWin.document.close();
+  printWin.print();
+}
+
+function generateCalendarPrintRows(y, m, tasks) {
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const today = new Date();
+  let rows = '<tr>';
+  for(let i=0;i<firstDay;i++) rows += '<td></td>';
+  let col = firstDay;
+  for(let d=1; d<=daysInMonth; d++) {
+    if(col === 7) { rows += '</tr><tr>'; col = 0; }
+    const dateStr = `${y}-${pad(m+1)}-${pad(d)}`;
+    const isT = today.getDate()===d && today.getMonth()===m && today.getFullYear()===y;
+    const dayTasks = tasks.filter(t=>t.date===dateStr);
+    rows += `<td class="${isT?'today-cell':''}">
+      <div class="day-num">${d}</div>
+      ${dayTasks.slice(0,3).map(t=>`<div class="event" style="background:${SITE_COLORS[t.site]}">${t.title}</div>`).join('')}
+      ${dayTasks.length>3?`<div style="font-size:8px;color:#666">+${dayTasks.length-3} daha</div>`:''}
+    </td>`;
+    col++;
+  }
+  while(col < 7) { rows += '<td></td>'; col++; }
+  rows += '</tr>';
+  return rows;
+}
+
+function printLeave() {
+  const printWin = window.open('', '_blank');
+  const used = state.leaveTotal - state.leaveRemaining;
+  printWin.document.write(`<!DOCTYPE html><html><head>
+    <meta charset="UTF-8"><title>İzin Raporu</title>
+    <style>
+      body { font-family: Arial, sans-serif; font-size: 12px; margin: 20mm; color: #1a1410; }
+      h1 { color: #2d5a27; font-size: 18px; }
+      .summary { display: flex; gap: 20px; margin: 16px 0; }
+      .sum-box { border: 1px solid #ccc; border-radius: 6px; padding: 10px 16px; text-align: center; }
+      .sum-val { font-size: 24px; font-weight: bold; color: #2d5a27; }
+      table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+      th { background: #2d5a27; color: white; padding: 8px; text-align: left; }
+      td { padding: 7px 8px; border-bottom: 1px solid #e0e0e0; }
+    </style>
+  </head><body>
+    <h1>🏖️ İzin Raporu</h1>
+    <p>Çankaya Belediyesi - ${new Date().toLocaleDateString('tr-TR')}</p>
+    <div class="summary">
+      <div class="sum-box"><div class="sum-val">${state.leaveTotal}</div>Toplam</div>
+      <div class="sum-box"><div class="sum-val">${used}</div>Kullanılan</div>
+      <div class="sum-box"><div class="sum-val">${state.leaveRemaining}</div>Kalan</div>
+    </div>
+    <table>
+      <thead><tr><th>Tür</th><th>Başlangıç</th><th>Bitiş</th><th>Gün</th><th>Not</th></tr></thead>
+      <tbody>
+        ${state.leaves.map(l=>`<tr><td>${l.type}</td><td>${formatDate(l.start)}</td><td>${formatDate(l.end)}</td><td>${l.days}</td><td>${l.note||'-'}</td></tr>`).join('')}
+      </tbody>
+    </table>
+  </body></html>`);
+  printWin.document.close();
+  printWin.print();
+}
+
+// ============================================================
+// MODALS & TOAST
+// ============================================================
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(mo => {
+  mo.addEventListener('click', e => {
+    if(e.target === mo) mo.classList.remove('open');
+  });
+});
+
+function showToast(msg, duration=2800) {
+  const container = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), duration);
+}
+
+// ============================================================
+// SERVICE WORKER & PWA — INLINE (tek dosya)
+// ============================================================
+// Manifest inline olarak inject et
+const manifestData = {
+  name: "Bostan Yöneticisi",
+  short_name: "Bostan",
+  description: "Çankaya Belediyesi Kent Tarımı Görev Yöneticisi",
+  start_url: "./",
+  display: "standalone",
+  orientation: "portrait",
+  theme_color: "#1a2e1a",
+  background_color: "#1a2e1a",
+  icons: [{
+    src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%231a2e1a'/><text y='150' x='16' font-size='150'>🌱</text></svg>",
+    sizes: "192x192", type: "image/svg+xml"
+  }]
+};
+const manifestBlob = new Blob([JSON.stringify(manifestData)], {type:'application/json'});
+const manifestURL = URL.createObjectURL(manifestBlob);
+document.getElementById('manifestLink').href = manifestURL;
+
+// Service Worker inline olarak blob'dan kaydet
+if('serviceWorker' in navigator) {
+  const swCode = `
+const CACHE='bostan-v1';
+self.addEventListener('install',e=>{self.skipWaiting();});
+self.addEventListener('activate',e=>{self.clients.claim();});
+self.addEventListener('fetch',e=>{
+  if(e.request.url.includes('api.anthropic.com')||e.request.url.includes('api.open-meteo.com')||e.request.url.includes('fonts.googleapis')){return;}
+  e.respondWith(caches.match(e.request).then(c=>c||fetch(e.request).catch(()=>caches.match('/'))));
+});
+self.addEventListener('push',e=>{
+  const d=e.data?e.data.json():{};
+  e.waitUntil(self.registration.showNotification(d.title||'🌱 Bostan Hatırlatıcı',{body:d.body||'Görevlerinizi kontrol edin'}));
+});`;
+  const swBlob = new Blob([swCode], {type:'application/javascript'});
+  const swURL = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swURL, {scope:'./'}).catch(()=>{});
+}
+
+// Notification permission
+if('Notification' in window && Notification.permission === 'default') {
+  setTimeout(() => {
+    Notification.requestPermission();
+  }, 3000);
+}
+
+// Daily reminder check
+function checkReminders() {
+  if(Notification.permission !== 'granted') return;
+  const now = new Date();
+  const hour = now.getHours();
+  if(hour === 8) {
+    const todayTasks = state.tasks.filter(t => isToday(t.date) && !t.done);
+    if(todayTasks.length > 0) {
+      new Notification('🌱 Bostan Hatırlatıcı', {
+        body: `Bugün ${todayTasks.length} göreviniz var: ${todayTasks[0].title}...`,
+        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🌱</text></svg>'
+      });
+    }
+  }
+}
+setInterval(checkReminders, 60 * 60 * 1000);
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  // Set today's date as default for new task
+  document.getElementById('newTaskDate').value = todayStr();
+  
+  // Load initial weather
+  loadWeather();
+  
+  // Render dashboard
+  renderDashboard();
+  
+  // Demo tasks if first run
+  if(state.tasks.length === 0) {
+    const demos = [
+      { title: 'Domates parselleri sulaması', site: 'ata', category: 'sulama', date: todayStr(), priority: 'yuksek', note: '3. ve 4. parsel' },
+      { title: 'Gübre uygulama - kompost', site: 'mutlukent', category: 'gübreleme', date: todayStr(), priority: 'orta', note: '' },
+      { title: 'Haftalık eğitim - organik tarım', site: 'cigdem', category: 'egitim', date: todayStr(), priority: 'orta', note: 'Çiğdem Emekli Lokali 10:00' },
+      { title: 'Katılımcı parsel takibi', site: 'alacaatli', category: 'raporlama', date: todayStr(), priority: 'dusuk', note: '' },
+      { title: 'Gölgeleme ağı kontrolü', site: 'ata', category: 'golgeleme', date: todayStr(), priority: 'yuksek', note: '' },
+    ];
+    demos.forEach(d => {
+      state.tasks.push({ id: Date.now().toString()+Math.random(), ...d, time:'', recurring:'yok', done:false, createdAt: new Date().toISOString() });
+    });
+    saveTasks();
+    renderDashboard();
+  }
+}
+
+init();
+</script>
+</body>
+</html>
